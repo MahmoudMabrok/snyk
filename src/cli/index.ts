@@ -80,6 +80,16 @@ async function runCommand(args: Args) {
         fullOutputFilePath,
       );
     }
+
+    const sarifOutputFile = args.options['sarif-file-output'];
+    if (sarifOutputFile) {
+      const sarifOutputFileStr = sarifOutputFile as string;
+      const fullOutputFilePath = getFullPath(sarifOutputFileStr);
+      saveJsonResultsToFile(
+        stripAnsi((commandResult as TestCommandResult).getJsonResult()),
+        fullOutputFilePath,
+      );
+    }
   }
 
   return res;
@@ -279,6 +289,18 @@ async function main() {
       }
       // On Windows, seems like quotes get passed in
       if (jsonFileOutputValue === "''" || jsonFileOutputValue === '""') {
+        throw new JsonFileOutputBadInputError();
+      }
+    }
+
+    const sarifFileOptionSet: boolean = 'sarif-file-output' in args.options;
+    if (sarifFileOptionSet) {
+      const sarifFileOutputValue = args.options['sarif-file-output'];
+      if (!sarifFileOutputValue || typeof sarifFileOutputValue !== 'string') {
+        throw new JsonFileOutputBadInputError();
+      }
+      // On Windows, seems like quotes get passed in
+      if (sarifFileOutputValue === "''" || sarifFileOutputValue === '""') {
         throw new JsonFileOutputBadInputError();
       }
     }

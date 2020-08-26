@@ -187,9 +187,15 @@ async function test(...args: MethodArgs): Promise<TestCommandResult> {
     errorMappedResults.length === 1
       ? errorMappedResults[0]
       : errorMappedResults;
-  const stringifiedData = JSON.stringify(dataToSend, null, 2);
+  let stringifiedData = JSON.stringify(dataToSend, null, 2);
+  if (options.sarif) {
+    stringifiedData = !options.iac
+    ? createSarifOutput(results)
+    : createSarifOutputForIac(results);
+  }
 
-  if (options.json) {
+  //TODO: we shoyuld validate users dont call us with both --json + --sarif
+  if (options.json || options.sarif) {
     // if all results are ok (.ok == true) then return the json
     if (errorMappedResults.every((res) => res.ok)) {
       return TestCommandResult.createJsonTestCommandResult(stringifiedData);
